@@ -1,2 +1,7 @@
 .vscode
 template.json
+node_modules
+
+.env.local
+next-env.d.ts
+.next

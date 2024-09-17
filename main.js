@@ -1,4 +1,9 @@
 // Variables //
+
+// store last version number to display update alerts
+
+var thisVersion = "1.2.4"; // this must be updated only on a major change (not patches and bug fixes)
+
 var username;
 var keys = [];
 const options = []; //array to hold options
@@ -16,7 +21,10 @@ const weekday = [
 ];
 
 const d = new Date();
-let dayToday = weekday[d.getDay()];
+let currentDay = d.getDay();
+let dateToday = d.getDate();
+let realDay = weekday[currentDay];
+let dayToday = realDay;
 
 window.addEventListener("load", (event) => {
   if (getCookie("username")) {
@@ -51,11 +59,39 @@ let detailsBackBtn = document.getElementById("details-back-btn");
 let mainBackBtn = document.getElementById("main-back-btn");
 let logOutBtn = document.getElementById("logout-btn");
 let username_field = document.getElementById("username-field");
+let prev_btn = document.getElementById("left-nav-icon");
+let next_btn = document.getElementById("right-nav-icon");
 
 // SEQUENCE //
 
 continueBtn.addEventListener("click", readUsername);
 detailsBtn.addEventListener("click", readDetails);
+
+// navigate through the week
+prev_btn.addEventListener("click", function () {
+  currentDay = currentDay - 1;
+  if (currentDay < 0) {
+    currentDay = 6;
+  }
+  dayToday = weekday[currentDay];
+  displayTable();
+});
+
+next_btn.addEventListener("click", function () {
+  currentDay = currentDay + 1;
+  if (currentDay > 6) {
+    currentDay = 0;
+  }
+  dayToday = weekday[currentDay];
+  displayTable();
+});
+
+// details section >> fetch options from databse and display within html
+let select_fac = document.getElementById("select-fac");
+let select_year = document.getElementById("select-year");
+let select_1 = document.getElementById("select-1");
+let select_2 = document.getElementById("select-2");
+let select_3 = document.getElementById("select-3");
 
 // back buttons
 //back btn in details section
@@ -65,21 +101,14 @@ detailsBackBtn.addEventListener("click", function () {
 // back btn in main section
 mainBackBtn.addEventListener("click", function () {
   transition("main-section", "details-section");
+  getFacList();
 });
 
 // logout button
 logOutBtn.addEventListener("click", function () {
   logOut();
-  location.reload();
   // transition("main-section", "login-section");
 });
-
-// details section >> fetch optins from databse and display within html
-let select_fac = document.getElementById("select-fac");
-let select_year = document.getElementById("select-year");
-let select_1 = document.getElementById("select-1");
-let select_2 = document.getElementById("select-2");
-let select_3 = document.getElementById("select-3");
 
 /**
  * SELECTION DROPDOWN MENUS

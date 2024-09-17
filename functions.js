@@ -5,7 +5,6 @@
 // read username on click continueBtn
 function readUsername() {
   let loginSection = document.getElementById("login-section");
-
   // read name from field
   let readVal = document.getElementById("username-field").value;
   if (readVal == "") {
@@ -27,17 +26,16 @@ function readUsername() {
         transition("login-section", "details-section");
       });
   }
+}
 
-  // get faculty list from JSON obj
-  function getFacList() {
-    let html_content = '<option value="Select">Select</option>';
-    let array = Object.keys(keys.fac);
-    array.forEach((element) => {
-      html_content +=
-        '<option value="' + element + '">' + element + "</option>";
-    });
-    select_fac.innerHTML = html_content;
-  }
+// get faculty list from JSON obj
+function getFacList() {
+  let html_content = '<option value="Select">Select</option>';
+  let array = Object.keys(keys.fac);
+  array.forEach((element) => {
+    html_content += '<option value="' + element + '">' + element + "</option>";
+  });
+  select_fac.innerHTML = html_content;
 }
 
 // read details and (save them to cookies) -> at last
@@ -81,15 +79,14 @@ function readDetails() {
 
 // function to write metadata
 function displayUserData() {
-  // username = getCookie("username");
   // get time
   var myDate = new Date();
   var hrs = myDate.getHours();
   let greet;
 
   if (hrs < 12) greet = "Good Morning";
-  else if (hrs >= 12 && hrs <= 17) greet = "Good Afternoon";
-  else if (hrs >= 17 && hrs <= 24) greet = "Good Evening";
+  else if (hrs >= 12 && hrs <= 15) greet = "Good Afternoon";
+  else if (hrs >= 15 && hrs <= 24) greet = "Good Evening";
 
   // display time
   document.getElementById("greeting-wish").innerText = greet;
@@ -98,85 +95,146 @@ function displayUserData() {
   // display pfp
   document.querySelector(
     ".pfp"
-  ).innerHTML = `<img id="main-pfp" src="https://avatars.dicebear.com/api/bottts/${randomSeed}.svg" alt="" />`;
+  ).innerHTML = `<img id="main-pfp" src="https://api.dicebear.com/7.x/thumbs/svg?seed=${randomSeed} " alt="" />`;
 
   displayTable();
 }
 
 /**display table */
 function displayTable() {
-  let table = keys.fac[faculty][year][semester][spec][sub].table;
+  try {
+    let table = keys.fac[faculty][year][semester][spec][sub].table;
 
-  let num = table[dayToday].length;
-  let html_content = "";
+    let num = table[dayToday].length;
+    let html_content = "";
 
-  // get now date
+    // get now date time
+    var now = new Date();
 
-  var now = new Date();
-  var nowDateTime = now.toISOString();
-  var nowDate = nowDateTime.split("T")[0];
+    var nowDateTime = now.toISOString();
+    var nowDate = nowDateTime.split("T")[0];
 
-  if (num) {
-    html_content = `<p id = 'lec-today-text'>Lectures today 👇</p>`;
-    for (i = 0; i < num; i++) {
-      let cardColorClass = "";
-      var targetStart = new Date(
-        nowDate + "T" + table[dayToday][i].start + ":00"
-      );
-      var targetEnd = new Date(nowDate + "T" + table[dayToday][i].end + ":00");
+    if (num) {
+      document.getElementById("date-display").innerHTML = `${dayToday}`;
+      for (i = 0; i < num; i++) {
+        let cardColorClass = "";
+        let linkTag = "";
+        let lecHall = "";
 
-      if (targetStart <= now && targetEnd > now) {
-        cardColorClass = "ongoing";
-      } else if (targetStart > now && targetEnd > now) {
-        // display default color
-        cardColorClass = "";
+        if (table[dayToday][i].link) {
+          let link = table[dayToday][i].link;
+          linkTag =
+            '<a class="link-btn" href="' +
+            link +
+            '" target="_blank"><i class="fa-solid fa-link"></i><span class="link-btn-text">Link</span></a>';
+        }
+
+        if (table[dayToday][i].loc) {
+          lecHall = `<span class="lec-hall"><i class="fa-solid fa-building"></i>${table[dayToday][i].loc}</span>`;
+        }
+
+        let startTime = table[dayToday][i].start;
+        let endTime = table[dayToday][i].end;
+
+        if (startTime.length != 5) {
+          startTime = addLeadingZeros(startTime, 5);
+        }
+
+        if (endTime.length != 5) {
+          endTime = addLeadingZeros(endTime, 5);
+        }
+
+        var targetStart = new Date(nowDate + "T" + startTime + ":00");
+        var targetEnd = new Date(nowDate + "T" + endTime + ":00");
+
+        if (targetStart <= now && targetEnd > now) {
+          cardColorClass = "ongoing";
+        } else if (targetStart > now && targetEnd > now) {
+          // display default color
+          cardColorClass = "";
+        }
+
+        html_content +=
+          '<div class="card timecard ' +
+          cardColorClass +
+          '" id="card' +
+          (i + 1) +
+          '">' +
+          '<div class="row">' +
+          '<p class="title">' +
+          table[dayToday][i].mod +
+          " <span id='module-code'>" +
+          table[dayToday][i].code +
+          "</span></p>" +
+          '<p class="type">' +
+          table[dayToday][i].type +
+          "</p>" +
+          "</div>" +
+          '<div class="row">' +
+          '<p class="time">' +
+          table[dayToday][i].start +
+          " - " +
+          table[dayToday][i].end +
+          lecHall +
+          "</p>" +
+          linkTag +
+          "</div>" +
+          "</div>";
+      }
+    } else {
+      document.getElementById("date-display").innerHTML = `${dayToday}`;
+
+      let displayDay;
+
+      // set display message day
+      if (dayToday == realDay) {
+        displayDay = "today";
+      } else {
+        displayDay = dayToday;
       }
 
-      html_content +=
-        '<div class="card timecard ' +
-        cardColorClass +
-        '" id="card' +
-        (i + 1) +
-        '">' +
-        '<div class="row">' +
-        '<p class="title">' +
-        table[dayToday][i].mod +
-        " <span id='module-code'>" +
-        table[dayToday][i].code +
-        "</span></p>" +
-        '<p class="type">' +
-        table[dayToday][i].type +
-        "</p>" +
-        "</div>" +
-        '<div class="row">' +
-        '<p class="time">' +
-        table[dayToday][i].start +
-        " - " +
-        table[dayToday][i].end +
-        "</p>" +
-        "</div>" +
-        "</div>";
+      html_content += `
+       <div class="no-lecs-msg">
+             <p>Nice! No lectures for <span> ${displayDay}</span>! 😃</p>
+             <img
+               id="no-lecs-img"
+               src="./images/no-lecs-svg.svg"
+               alt="playing cat"
+             />
+       </div>`;
     }
-  } else {
-    // code here
-    html_content += `
-      <div class="no-lecs-msg">
-            <p>Nice! No lectures for today! 😃</p>
-            <img
-              id="no-lecs-img"
-              src="./images/no-lecs-svg.svg"
-              alt="playing cat"
-            />
-          </div>`;
-  }
 
-  document.getElementById("cards-container").innerHTML = html_content;
+    document.getElementById("cards-container").innerHTML = html_content;
+  } catch (error) {
+    console.error("Error occurred:", error);
+    logOut();
+  }
+  if (thisVersion != getCookie("version")) {
+    let versionData;
+    fetch("./version-info.json")
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => (versionData = data))
+      .then(function () {
+        showAlert(
+          versionData.title,
+          versionData.subtitle,
+          versionData.notes,
+          versionData.alert_btn
+        );
+      });
+  }
 }
 
 function displayTime() {
   let currentTime = document.getElementById("greeting-time");
   let now = new Date().toLocaleTimeString();
   currentTime.innerHTML = now;
+}
+
+function addLeadingZeros(str, targetLength) {
+  return str.padStart(targetLength, "0");
 }
 
 // transition
@@ -198,6 +256,7 @@ function logOut() {
   delCookie("spec");
   delCookie("sub");
   delCookie("seed");
+  location.reload();
 }
 
 // set details to cookies
@@ -274,4 +333,29 @@ function fadeIn(object) {
       object.classList.remove("fade-in");
     }
   }, 400);
+}
+
+function showAlert(title, subtitle, message, button) {
+  let messageContent = document.getElementById("message-content");
+
+  messageContent.innerHTML = `
+  <div class="alert-wrapper">
+  <div class="alert-box">
+    <p class="title">${title}</p>
+    <div class="separator"></div>
+    <div class="alert-body">
+    <p class="title">${subtitle}</p>
+    ${message}</div>
+    <div class="row">
+      <button class="btn-okay" id="alertbox-btn-ok" onclick="closeAlert()">${button}</button>
+    </div>
+  </div>
+</div>
+`;
+}
+
+function closeAlert() {
+  setCookie("version", thisVersion, 90);
+  let messageContent = document.getElementById("message-content");
+  messageContent.innerHTML = "";
 }
